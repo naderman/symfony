@@ -3,7 +3,8 @@
 /*
  * This file is part of the symfony package.
  * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ * (c) Nils Adermann <naderman@naderman.de>
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -16,7 +17,7 @@ use Symfony\Components\YAML\Dumper;
 
 YAML::setSpecVersion('1.1');
 
-$t = new LimeTest(148);
+$t = new LimeTest(150);
 
 $parser = new Parser();
 $dumper = new Dumper();
@@ -151,3 +152,19 @@ class A
 }
 $a = array('foo' => new A(), 'bar' => 1);
 $t->is($dumper->dump($a), '{ foo: !!php/object:O:1:"A":1:{s:1:"a";s:3:"foo";}, bar: 1 }', '->dump() is able to dump objects');
+
+$expected = <<<EOF
+
+- foo
+
+EOF;
+file_put_contents('temp.yml.php', $dumper->dumpPHP(array('foo'), 1));
+
+ob_start();
+$actual = include('temp.yml.php');
+$output = ob_get_clean();
+
+unlink('temp.yml.php');
+
+$t->is($actual, $expected, '->dumpPHP() generates YAML with valid prefixed PHP code');
+$t->is($output, '', '->dumpPHP() generates a PHP file without output');

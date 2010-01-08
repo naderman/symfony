@@ -20,6 +20,24 @@ namespace Symfony\Components\YAML;
 class Dumper
 {
   /**
+   * Dumps a PHP value to YAML prefixed with php code to hide the data
+   * in a PHP file.
+   *
+   * @param  mixed   $input  The PHP value
+   * @param  integer $inline The level where you switch to inline YAML
+   *
+   * @return string  PHP code and the YAML representation of the PHP value
+   *
+   * @author Nils Adermann <naderman@naderman.de>
+   */
+  public function dumpPHP($input, $inline = 0)
+  {
+    $prefix = "<?php return file_get_contents(__FILE__, null, null, __COMPILER_HALT_OFFSET__);\n__halt_compiler();\n";
+
+    return $prefix.$this->dump($input, $inline);
+  }
+
+  /**
    * Dumps a PHP value to YAML.
    *
    * @param  mixed   $input  The PHP value

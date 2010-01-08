@@ -79,7 +79,7 @@ class YAML
       $content = ob_get_clean();
 
       // if an array is returned by the config file assume it's in plain php form else in YAML
-      $input = is_array($retval) ? $retval : $content;
+      $input = is_array($retval) || is_string($retval) ? $retval : $content;
     }
 
     // if an array is returned by the config file assume it's in plain php form else in YAML
@@ -118,6 +118,24 @@ class YAML
     $yaml = new Dumper();
 
     return $yaml->dump($array, $inline);
+  }
+
+  /**
+   * Dumps a PHP array to a YAML string and prefixes it with php code
+   * to hide the data in a PHP file.
+   *
+   * @param array   $array PHP array
+   * @param integer $inline The level where you switch to inline YAML
+   *
+   * @return string A YAML string representing the original PHP array
+   *                prefixed by PHP code to save the string to a php
+   *                file.
+   */
+  public static function dumpPHP($array, $inline = 2)
+  {
+    $yaml = new Dumper();
+
+    return $yaml->dumpPHP($array, $inline);
   }
 }
 
