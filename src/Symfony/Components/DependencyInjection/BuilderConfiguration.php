@@ -158,6 +158,37 @@ class BuilderConfiguration
   }
 
   /**
+   * Returns true if a service alias exists.
+   *
+   * @param  string  $alias The alias
+   *
+   * @return Boolean true if the alias exists, false otherwise
+   */
+  public function hasAlias($alias)
+  {
+    return array_key_exists($alias, $this->aliases);
+  }
+
+  /**
+   * Gets the service id for a given alias.
+   *
+   * @param  string $alias The alias
+   *
+   * @return string The aliased id
+   *
+   * @throws \InvalidArgumentException if the service alias does not exist
+   */
+  public function getAlias($alias)
+  {
+    if (!$this->hasAlias($alias))
+    {
+      throw new \InvalidArgumentException(sprintf('The service alias "%s" does not exist.', $alias));
+    }
+
+    return $this->aliases[$alias];
+  }
+
+  /**
    * Sets a definition.
    *
    * @param  string     $id         The identifier
@@ -233,5 +264,26 @@ class BuilderConfiguration
     }
 
     return $this->definitions[$id];
+  }
+
+  /**
+   * Gets a service definition by id or alias.
+   *
+   * The method "unaliases" recursively to return a Definition instance.
+   *
+   * @param  string  $id The service identifier or alias
+   *
+   * @return Definition A Definition instance
+   *
+   * @throws \InvalidArgumentException if the service definition does not exist
+   */
+  public function findDefinition($id)
+  {
+    if ($this->hasAlias($id))
+    {
+      return $this->findDefinition($this->getAlias($id));
+    }
+
+    return $this->getDefinition($id);
   }
 }
