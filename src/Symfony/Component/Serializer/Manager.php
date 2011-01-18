@@ -38,7 +38,7 @@ class Manager
     public function serialize($data, $format)
     {
         if (!is_scalar($data)) {
-            $data = $this->normalize;
+            $data = $this->normalize($data, $format);
         }
         // TODO encode
         return $data;
@@ -78,7 +78,7 @@ class Manager
     {
         if (is_array($data)) {
             foreach ($data as $key => $val) {
-                $data[$key] = is_scalar($val) ? $val : $this->normalize($val);
+                $data[$key] = is_scalar($val) ? $val : $this->normalize($val, $format);
             }
             return $data;
         }

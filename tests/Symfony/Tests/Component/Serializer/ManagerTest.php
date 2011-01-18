@@ -37,4 +37,25 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
     {
         $this->manager->deserializeObject('foo', 'stdClass');
     }
+
+    public function testSerializeScalar()
+    {
+        $result = $this->manager->serialize('foo', 'xml');
+        $this->assertEquals('foo', $result);
+    }
+
+    public function testSerializeArrayOfScalars()
+    {
+        $data = array('foo', array(5, 3));
+        $result = $this->manager->serialize($data, 'xml');
+        $this->assertEquals($data, $result);
+    }
+
+    /**
+     * @expectedException \UnexpectedValueException
+     */
+    public function testSerializeNoMatchObject()
+    {
+        $this->manager->serialize(new \stdClass, 'xml');
+    }
 }
