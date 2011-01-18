@@ -23,14 +23,16 @@ class ScalarSerializer implements SerializerInterface
         return $object->toScalar($this, $format);
     }
 
-    public function deserialize($data, $format = null)
+    public function deserialize($data, $class, $format = null)
     {
-        return $object->fromScalar($this, $data, $format);
+        $object = new $class;
+        $object->fromScalar($this, $data, $format);
+        return $object;
     }
 
-    public function supports($object, $format = null)
+    public function supports(\ReflectionClass $class, $format = null)
     {
-        return $object instanceof ScalarSerializable;
+        return $class->implementsInterface('Symfony\Component\Serializer\Serializer\ScalarSerializable');
     }
 
     public function setManager($manager)
@@ -38,7 +40,7 @@ class ScalarSerializer implements SerializerInterface
         $this->manager = $manager;
     }
 
-    public function getManager($manager)
+    public function getManager()
     {
         return $this->manager;
     }

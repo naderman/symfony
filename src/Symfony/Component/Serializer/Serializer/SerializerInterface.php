@@ -19,8 +19,8 @@ namespace Symfony\Component\Serializer\Serializer;
 interface SerializerInterface
 {
     function serialize($object, $format);
-    function deserialize($data, $format = null);
-    function supports($object, $format = null);
+    function deserialize($data, $class, $format = null);
+    function supports(\ReflectionClass $class, $format = null);
     function setManager($manager);
     function getManager();
 }
