@@ -30,6 +30,7 @@ namespace Symfony\Component\Serializer;
  */
 interface ManagerInterface
 {
-    function serialize($object, $format);
-    function deserialize($data, $format = null);
+    function serialize($data, $format);
+    function serializeObject($object, $format);
+    function deserializeObject($data, $class, $format = null);
 }

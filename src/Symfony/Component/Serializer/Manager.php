@@ -35,14 +35,23 @@ class Manager
     protected $serializers = array();
     protected $cache = array();
 
-    public function serialize($object, $format)
+    public function serialize($data, $format)
+    {
+        if (!is_scalar($data)) {
+            $data = $this->normalize;
+        }
+        // TODO encode
+        return $data;
+    }
+
+    public function serializeObject($object, $format)
     {
         $class = get_class($object);
         if (isset($this->cache[$class][$format])) {
             return $serializer->serialize($object, $format);
         }
         foreach ($this->serializers as $serializer) {
-            if ($serializer->supports($object, $format)) {
+            if ($serializer->supports($class, $format)) {
                 $this->cache[$class][$format] = $serializer;
                 return $serializer->serialize($object, $format);
             }
@@ -50,19 +59,33 @@ class Manager
         throw new \UnexpectedValueException('Could not serialize object of type '.$class);
     }
 
-    public function deserialize($data, $format = null)
+    public function deserializeObject($data, $class, $format = null)
     {
-        $class = get_class($object);
         if (isset($this->cache[$class][$format])) {
             return $serializer->deserialize($data, $format);
         }
+        $reflClass = new \ReflectionClass($class);
         foreach ($this->serializers as $serializer) {
-            if ($serializer->supports($object, $format)) {
+            if ($serializer->supports($reflClass, $format)) {
                 $this->cache[$class][$format] = $serializer;
-                return $serializer->deserialize($data, $format);
+                return $serializer->deserialize($data, $class, $format);
             }
         }
         throw new \UnexpectedValueException('Could not deserialize object of type '.$class);
+    }
+
+    protected function normalize($data, $format)
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $val) {
+                $data[$key] = is_scalar($val) ? $val : $this->normalize($val);
+            }
+            return $data;
+        }
+        if (is_object($data)) {
+            return $this->serializeObject($data, $format);
+        }
+        throw new \UnexpectedValueException('An unexpected value could not be serialized: '.var_export($data, true));
     }
 
     public function add(SerializerInterface $serializer)
