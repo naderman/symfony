@@ -95,25 +95,12 @@ class Manager
         return $this->encoders[$format]->encode($data);
     }
 
-    public function decode($data, $format = null)
+    public function decode($data, $format)
     {
-        if (null === $format) {
-            $format = $this->guessFormat($data);
-        }
         if (!isset($this->encoders[$format])) {
             throw new \UnexpectedValueException('Could not find a decoder for the '.$format.' format');
         }
         return $this->encoders[$format]->decode($data);
-    }
-
-    public function guessFormat($data)
-    {
-        foreach ($this->encoders as $format => $encoder) {
-            if ($encoder->supports($data)) {
-                return $format;
-            }
-        }
-        throw new \UnexpectedValueException('The format could not be determined');
     }
 
     public function addSerializer(SerializerInterface $serializer)

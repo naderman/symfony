@@ -20,7 +20,6 @@ interface EncoderInterface
 {
     function encode($data);
     function decode($data);
-    function supports($data);
     function setManager($manager);
     function getManager();
 }

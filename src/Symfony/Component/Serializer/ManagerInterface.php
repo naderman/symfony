@@ -23,5 +23,5 @@ interface ManagerInterface
     function deserializeObject($data, $class, $format = null);
 
     function encode($data, $format);
-    function decode($data, $format = null);
+    function decode($data, $format);
 }

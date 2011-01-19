@@ -30,11 +30,6 @@ class JsonEncoder implements EncoderInterface
         return json_decode($data);
     }
 
-    public function supports($data)
-    {
-        // TODO detect whether the string looks like json
-    }
-
     public function setManager($manager)
     {
         $this->manager = $manager;
