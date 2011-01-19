@@ -11,6 +11,9 @@ namespace Symfony\Component\Serializer\Serializer;
  * with this source code in the file LICENSE.
  */
 
+// TODO rename this, names needed:
+// Normalizable ?
+
 /**
  * Defines the most basic interface a class must implement to be serializable
  *
@@ -21,6 +24,6 @@ namespace Symfony\Component\Serializer\Serializer;
  */
 interface ScalarSerializable
 {
-    function toScalar(SerializerInterface $serializer, $format);
-    function fromScalar(SerializerInterface $serializer, $data, $format);
+    function toScalar(SerializerInterface $serializer, $format, $properties = null);
+    function fromScalar(SerializerInterface $serializer, $data, $format = null);
 }

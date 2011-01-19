@@ -12,25 +12,16 @@ namespace Symfony\Component\Serializer;
  */
 
 /**
- * Serializer serializes and unserializes data
- *
- * objects are turned into arrays by serializers, and vice versa.
- * arrays are turned into various output formats by encoders
- *
- * $serializer->serialize('format', $obj, array('field','field2'))
- * $serializer->deserialize('format', $obj, array('field','field2'))
- *
- * TODO:
- * - Use Validator comp to check which fields are mandatory during deserialization (?)
- *   - Alternatively we could use .NET-style @serialize:NonSerialized and @serialize:OptionalField on properties
- * - Add a Deserializable interface implementing fromArray($array, $format)
- * - Add a Serializable interface implementing toArray($format)
+ * Defines the interface of the Manager
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 interface ManagerInterface
 {
     function serialize($data, $format);
-    function serializeObject($object, $format);
+    function serializeObject($object, $format, $properties = null);
     function deserializeObject($data, $class, $format = null);
+
+    function encode($data, $format);
+    function decode($data, $format = null);
 }

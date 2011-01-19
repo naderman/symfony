@@ -18,9 +18,9 @@ class ScalarSerializer implements SerializerInterface
 {
     protected $manager;
 
-    public function serialize($object, $format)
+    public function serialize($object, $format, $properties = null)
     {
-        return $object->toScalar($this, $format);
+        return $object->toScalar($this, $format, $properties);
     }
 
     public function deserialize($data, $class, $format = null)

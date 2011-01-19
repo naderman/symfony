@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Component\Serializer\Serializer;
+namespace Symfony\Component\Serializer\Encoder;
 
 /*
  * This file is part of the Symfony framework.
@@ -12,15 +12,15 @@ namespace Symfony\Component\Serializer\Serializer;
  */
 
 /**
- * Defines the interface of serializers
+ * Defines the interface of encoders
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-interface SerializerInterface
+interface EncoderInterface
 {
-    function serialize($object, $format, $properties = null);
-    function deserialize($data, $class, $format = null);
-    function supports(\ReflectionClass $class, $format = null);
+    function encode($data);
+    function decode($data);
+    function supports($data);
     function setManager($manager);
     function getManager();
 }

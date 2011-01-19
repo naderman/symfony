@@ -5,6 +5,7 @@ namespace Symfony\Tests\Component\Serializer;
 use Symfony\Component\Serializer\Manager;
 use Symfony\Component\Serializer\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Serializer\ScalarSerializable;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /*
  * This file is part of the Symfony framework.
@@ -40,14 +41,32 @@ class ManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testSerializeScalar()
     {
-        $result = $this->manager->serialize('foo', 'xml');
-        $this->assertEquals('foo', $result);
+        $this->manager->addEncoder('json', new JsonEncoder());
+        $result = $this->manager->serialize('foo', 'json');
+        $this->assertEquals('"foo"', $result);
     }
 
     public function testSerializeArrayOfScalars()
     {
+        $this->manager->addEncoder('json', new JsonEncoder());
         $data = array('foo', array(5, 3));
-        $result = $this->manager->serialize($data, 'xml');
+        $result = $this->manager->serialize($data, 'json');
+        $this->assertEquals(json_encode($data), $result);
+    }
+
+    public function testEncode()
+    {
+        $this->manager->addEncoder('json', new JsonEncoder());
+        $data = array('foo', array(5, 3));
+        $result = $this->manager->encode($data, 'json');
+        $this->assertEquals(json_encode($data), $result);
+    }
+
+    public function testDecode()
+    {
+        $this->manager->addEncoder('json', new JsonEncoder());
+        $data = array('foo', array(5, 3));
+        $result = $this->manager->decode(json_encode($data), 'json');
         $this->assertEquals($data, $result);
     }
 

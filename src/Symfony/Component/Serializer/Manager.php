@@ -3,6 +3,7 @@
 namespace Symfony\Component\Serializer;
 
 use Symfony\Component\Serializer\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Encoder\EncoderInterface;
 
 /*
  * This file is part of the Symfony framework.
@@ -19,41 +20,39 @@ use Symfony\Component\Serializer\Serializer\SerializerInterface;
  * objects are turned into arrays by serializers, and vice versa.
  * arrays are turned into various output formats by encoders
  *
- * $serializer->serialize('format', $obj, array('field','field2'))
- * $serializer->deserialize('format', $obj, array('field','field2'))
+ * $serializer->serialize($obj, 'xml', array('field','field2'))
+ * $serializer->deserialize($data, 'Foo\Bar', 'xml')
  *
  * TODO:
  * - Use Validator comp to check which fields are mandatory during deserialization (?)
  *   - Alternatively we could use .NET-style @serialize:NonSerialized and @serialize:OptionalField on properties
- * - Add a Deserializable interface implementing fromArray($array, $format)
- * - Add a Serializable interface implementing toArray($format)
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 class Manager
 {
     protected $serializers = array();
-    protected $cache = array();
+    protected $encoders = array();
+    protected $serializerCache = array();
 
     public function serialize($data, $format)
     {
         if (!is_scalar($data)) {
             $data = $this->normalize($data, $format);
         }
-        // TODO encode
-        return $data;
+        return $this->encode($data, $format);
     }
 
-    public function serializeObject($object, $format)
+    public function serializeObject($object, $format, $properties = null)
     {
         $class = get_class($object);
-        if (isset($this->cache[$class][$format])) {
-            return $serializer->serialize($object, $format);
+        if (isset($this->serializercache[$class][$format])) {
+            return $serializer->serialize($object, $format, $properties);
         }
         foreach ($this->serializers as $serializer) {
             if ($serializer->supports($class, $format)) {
-                $this->cache[$class][$format] = $serializer;
-                return $serializer->serialize($object, $format);
+                $this->serializercache[$class][$format] = $serializer;
+                return $serializer->serialize($object, $format, $properties);
             }
         }
         throw new \UnexpectedValueException('Could not serialize object of type '.$class);
@@ -61,13 +60,13 @@ class Manager
 
     public function deserializeObject($data, $class, $format = null)
     {
-        if (isset($this->cache[$class][$format])) {
+        if (isset($this->serializercache[$class][$format])) {
             return $serializer->deserialize($data, $format);
         }
         $reflClass = new \ReflectionClass($class);
         foreach ($this->serializers as $serializer) {
             if ($serializer->supports($reflClass, $format)) {
-                $this->cache[$class][$format] = $serializer;
+                $this->serializercache[$class][$format] = $serializer;
                 return $serializer->deserialize($data, $class, $format);
             }
         }
@@ -88,19 +87,64 @@ class Manager
         throw new \UnexpectedValueException('An unexpected value could not be serialized: '.var_export($data, true));
     }
 
-    public function add(SerializerInterface $serializer)
+    public function encode($data, $format)
+    {
+        if (!isset($this->encoders[$format])) {
+            throw new \UnexpectedValueException('Could not find an encoder for the '.$format.' format');
+        }
+        return $this->encoders[$format]->encode($data);
+    }
+
+    public function decode($data, $format = null)
+    {
+        if (null === $format) {
+            $format = $this->guessFormat($data);
+        }
+        if (!isset($this->encoders[$format])) {
+            throw new \UnexpectedValueException('Could not find a decoder for the '.$format.' format');
+        }
+        return $this->encoders[$format]->decode($data);
+    }
+
+    public function guessFormat($data)
+    {
+        foreach ($this->encoders as $format => $encoder) {
+            if ($encoder->supports($data)) {
+                return $format;
+            }
+        }
+        throw new \UnexpectedValueException('The format could not be determined');
+    }
+
+    public function addSerializer(SerializerInterface $serializer)
     {
         $this->serializers[] = $serializer;
         $serializer->setManager($this);
     }
 
-    public function all()
+    public function getSerializers()
     {
         return $this->serializers;
     }
 
-    public function remove(SerializerInterface $serializer)
+    public function removeSerializer(SerializerInterface $serializer)
     {
         unset($this->serializers[array_search($serializer, $this->serializers, true)]);
+    }
+
+    public function addEncoder($format, EncoderInterface $encoder)
+    {
+        $this->encoders[$format] = $encoder;
+        $encoder->setManager($this);
+    }
+
+    public function getEncoders()
+    {
+        return $this->encoders;
+    }
+
+    public function removeEncoder($format)
+    {
+        unset($this->encoders[$format]);
     }
 }

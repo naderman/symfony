@@ -55,6 +55,11 @@ class Dummy implements ScalarSerializable
     public $foo;
     public $xmlFoo;
 
+    public function toScalar(SerializerInterface $serializer, $format, $properties = null)
+    {
+        return $format === 'xml' ? $this->xmlFoo : $this->foo;
+    }
+
     public function fromScalar(SerializerInterface $serializer, $data, $format = null)
     {
         if ($format === 'xml') {
@@ -62,10 +67,5 @@ class Dummy implements ScalarSerializable
         } else {
             $this->foo = $data;
         }
-    }
-
-    public function toScalar(SerializerInterface $serializer, $format)
-    {
-        return $format === 'xml' ? $this->xmlFoo : $this->foo;
     }
 }
