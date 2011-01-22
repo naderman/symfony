@@ -12,15 +12,17 @@ namespace Symfony\Component\Serializer;
  */
 
 /**
- * Defines the interface of the Manager
+ * Defines the interface of the Serializer
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-interface ManagerInterface
+interface SerializerInterface
 {
     function serialize($data, $format);
-    function serializeObject($object, $format, $properties = null);
-    function deserializeObject($data, $class, $format = null);
+
+    function normalize($data, $format);
+    function normalizeObject($object, $format, $properties = null);
+    function denormalizeObject($data, $class, $format = null);
 
     function encode($data, $format);
     function decode($data, $format);

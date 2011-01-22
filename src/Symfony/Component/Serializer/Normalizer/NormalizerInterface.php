@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Component\Serializer\Serializer;
+namespace Symfony\Component\Serializer\Normalizer;
 
 /*
  * This file is part of the Symfony framework.
@@ -16,11 +16,11 @@ namespace Symfony\Component\Serializer\Serializer;
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-interface SerializerInterface
+interface NormalizerInterface
 {
-    function serialize($object, $format, $properties = null);
-    function deserialize($data, $class, $format = null);
+    function normalize($object, $format, $properties = null);
+    function denormalize($data, $class, $format = null);
     function supports(\ReflectionClass $class, $format = null);
-    function setManager($manager);
-    function getManager();
+    function setSerializer($serializer);
+    function getSerializer();
 }

@@ -2,7 +2,7 @@
 
 namespace Symfony\Component\Serializer;
 
-use Symfony\Component\Serializer\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
 
 /*
@@ -21,7 +21,8 @@ use Symfony\Component\Serializer\Encoder\EncoderInterface;
  * arrays are turned into various output formats by encoders
  *
  * $serializer->serialize($obj, 'xml', array('field','field2'))
- * $serializer->deserialize($data, 'Foo\Bar', 'xml')
+ * $serializer->decode($data, 'xml')
+ * $serializer->denormalizeObject($data, 'Class', 'xml')
  *
  * TODO:
  * - Use Validator comp to check which fields are mandatory during deserialization (?)
@@ -29,11 +30,11 @@ use Symfony\Component\Serializer\Encoder\EncoderInterface;
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class Manager
+class Serializer
 {
-    protected $serializers = array();
+    protected $normalizers = array();
     protected $encoders = array();
-    protected $serializerCache = array();
+    protected $normalizerCache = array();
 
     public function serialize($data, $format)
     {
@@ -43,37 +44,37 @@ class Manager
         return $this->encode($data, $format);
     }
 
-    public function serializeObject($object, $format, $properties = null)
+    public function normalizeObject($object, $format, $properties = null)
     {
         $class = get_class($object);
-        if (isset($this->serializercache[$class][$format])) {
-            return $serializer->serialize($object, $format, $properties);
+        if (isset($this->normalizerCache[$class][$format])) {
+            return $normalizer->serialize($object, $format, $properties);
         }
-        foreach ($this->serializers as $serializer) {
-            if ($serializer->supports($class, $format)) {
-                $this->serializercache[$class][$format] = $serializer;
-                return $serializer->serialize($object, $format, $properties);
+        foreach ($this->normalizers as $normalizer) {
+            if ($normalizer->supports($class, $format)) {
+                $this->normalizerCache[$class][$format] = $normalizer;
+                return $normalizer->serialize($object, $format, $properties);
             }
         }
         throw new \UnexpectedValueException('Could not serialize object of type '.$class);
     }
 
-    public function deserializeObject($data, $class, $format = null)
+    public function denormalizeObject($data, $class, $format = null)
     {
-        if (isset($this->serializercache[$class][$format])) {
-            return $serializer->deserialize($data, $format);
+        if (isset($this->normalizerCache[$class][$format])) {
+            return $normalizer->deserialize($data, $format);
         }
         $reflClass = new \ReflectionClass($class);
-        foreach ($this->serializers as $serializer) {
-            if ($serializer->supports($reflClass, $format)) {
-                $this->serializercache[$class][$format] = $serializer;
-                return $serializer->deserialize($data, $class, $format);
+        foreach ($this->normalizers as $normalizer) {
+            if ($normalizer->supports($reflClass, $format)) {
+                $this->normalizerCache[$class][$format] = $normalizer;
+                return $normalizer->deserialize($data, $class, $format);
             }
         }
         throw new \UnexpectedValueException('Could not deserialize object of type '.$class);
     }
 
-    protected function normalize($data, $format)
+    public function normalize($data, $format)
     {
         if (is_array($data)) {
             foreach ($data as $key => $val) {
@@ -82,7 +83,7 @@ class Manager
             return $data;
         }
         if (is_object($data)) {
-            return $this->serializeObject($data, $format);
+            return $this->normalizeObject($data, $format);
         }
         throw new \UnexpectedValueException('An unexpected value could not be serialized: '.var_export($data, true));
     }
@@ -103,20 +104,20 @@ class Manager
         return $this->encoders[$format]->decode($data);
     }
 
-    public function addSerializer(SerializerInterface $serializer)
+    public function addNormalizer(NormalizerInterface $normalizer)
     {
-        $this->serializers[] = $serializer;
-        $serializer->setManager($this);
+        $this->normalizers[] = $normalizer;
+        $normalizer->setManager($this);
     }
 
-    public function getSerializers()
+    public function getNormalizers()
     {
-        return $this->serializers;
+        return $this->normalizers;
     }
 
-    public function removeSerializer(SerializerInterface $serializer)
+    public function removeNormalizer(NormalizerInterface $normalizer)
     {
-        unset($this->serializers[array_search($serializer, $this->serializers, true)]);
+        unset($this->normalizers[array_search($normalizer, $this->normalizers, true)]);
     }
 
     public function addEncoder($format, EncoderInterface $encoder)

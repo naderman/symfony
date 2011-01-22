@@ -2,9 +2,8 @@
 
 namespace Symfony\Tests\Component\Serializer;
 
-use Symfony\Component\Serializer\Manager;
-use Symfony\Component\Serializer\Serializer\SerializerInterface;
-use Symfony\Component\Serializer\Serializer\ScalarSerializable;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 /*
@@ -16,65 +15,65 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
  * with this source code in the file LICENSE.
  */
 
-class ManagerTest extends \PHPUnit_Framework_TestCase
+class SerializerTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
-        $this->manager = new Manager();
+        $this->serializer = new Serializer();
     }
 
     /**
      * @expectedException \UnexpectedValueException
      */
-    public function testSerializeObjectNoMatch()
+    public function testNormalizeObjectNoMatch()
     {
-        $this->manager->serializeObject(new \stdClass, 'xml');
+        $this->serializer->normalizeObject(new \stdClass, 'xml');
     }
 
     /**
      * @expectedException \UnexpectedValueException
      */
-    public function testDeserializeObjectNoMatch()
+    public function testDenormalizeObjectNoMatch()
     {
-        $this->manager->deserializeObject('foo', 'stdClass');
+        $this->serializer->denormalizeObject('foo', 'stdClass');
     }
 
     public function testSerializeScalar()
     {
-        $this->manager->addEncoder('json', new JsonEncoder());
-        $result = $this->manager->serialize('foo', 'json');
+        $this->serializer->addEncoder('json', new JsonEncoder());
+        $result = $this->serializer->serialize('foo', 'json');
         $this->assertEquals('"foo"', $result);
     }
 
     public function testSerializeArrayOfScalars()
     {
-        $this->manager->addEncoder('json', new JsonEncoder());
+        $this->serializer->addEncoder('json', new JsonEncoder());
         $data = array('foo', array(5, 3));
-        $result = $this->manager->serialize($data, 'json');
+        $result = $this->serializer->serialize($data, 'json');
         $this->assertEquals(json_encode($data), $result);
     }
 
     public function testEncode()
     {
-        $this->manager->addEncoder('json', new JsonEncoder());
+        $this->serializer->addEncoder('json', new JsonEncoder());
         $data = array('foo', array(5, 3));
-        $result = $this->manager->encode($data, 'json');
+        $result = $this->serializer->encode($data, 'json');
         $this->assertEquals(json_encode($data), $result);
     }
 
     public function testDecode()
     {
-        $this->manager->addEncoder('json', new JsonEncoder());
+        $this->serializer->addEncoder('json', new JsonEncoder());
         $data = array('foo', array(5, 3));
-        $result = $this->manager->decode(json_encode($data), 'json');
+        $result = $this->serializer->decode(json_encode($data), 'json');
         $this->assertEquals($data, $result);
     }
 
     /**
      * @expectedException \UnexpectedValueException
      */
-    public function testSerializeNoMatchObject()
+    public function testNormalizeNoMatchObject()
     {
-        $this->manager->serialize(new \stdClass, 'xml');
+        $this->serializer->normalizeObject(new \stdClass, 'xml');
     }
 }
