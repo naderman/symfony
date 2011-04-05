@@ -51,7 +51,7 @@ class Literal
 
     public function inverted()
     {
-        return new Literal($this->getPackage(), ! $this->isWanted());
+        return new Literal($this->getPackage(), !$this->isWanted());
     }
 
     public function equals(Literal $b)

@@ -55,7 +55,7 @@ class Rule
         }
 
         for ($i = 0, $n = count($this->literals); $i < $n; $i++) {
-            if (! $this->literals[$i]->equals($rule->literals[$i])) {
+            if (!$this->literals[$i]->equals($rule->literals[$i])) {
                 return false;
             }
         }
@@ -80,7 +80,7 @@ class Rule
 
     public function isEnabled()
     {
-        return ! $this->disabled;
+        return !$this->disabled;
     }
 
     public function getLiterals()

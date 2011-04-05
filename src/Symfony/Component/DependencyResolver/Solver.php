@@ -144,7 +144,7 @@ class Solver
      */
     public function createInstallOneOfRule(array $packages, $reason, $reasonData = null)
     {
-        if (! count($packages)) {
+        if (empty($packages)) {
             return $this->createImpossibleRule($reason, $reasonData);
         }
 
@@ -255,7 +255,7 @@ class Solver
                 $dontFix = 1;
             }
 
-            if (! $dontFix && !$this->policy->installable($this, $this->pool, $this->installed, $package)) {
+            if (!$dontFix && !$this->policy->installable($this, $this->pool, $this->installed, $package)) {
                 $this->addRule(self::TYPE_PACKAGE, $this->createRemoveRule($package, self::RULE_NOT_INSTALLABLE, (string) $package));
                 continue;
             }
@@ -277,7 +277,7 @@ class Solver
                     }
 
                     // no installed provider found: previously broken dependency => don't add rule
-                    if (! $foundInstalled) {
+                    if (!$foundInstalled) {
                         continue;
                     }
                 }
@@ -345,18 +345,18 @@ class Solver
             foreach ($rules as $i => $rule) {
 
                 // skip simple assertions of the form (A) or (-A)
-                if (! $rule->watch2) {
+                if (!$rule->watch2) {
                     continue;
                 }
 
-                if (! isset($this->watches[$rule->watch1])) {
+                if (!isset($this->watches[$rule->watch1])) {
                     $this->watches[$rule->watch1] = 0;
                 }
 
                 $rule->next1 = $this->watches[$rule->watch1];
                 $this->watches[$rule->watch1] = $rule;
 
-                if (! isset($this->watches[$rule->watch2])) {
+                if (!isset($this->watches[$rule->watch2])) {
                     $this->watches[$rule->watch2] = 0;
                 }
 
@@ -492,8 +492,6 @@ class Solver
             }
         }
 
-        //$this->printRules();
-        //die();
         // solver_addchoicerules(solv);
 
         $this->makeWatches();
@@ -503,6 +501,7 @@ class Solver
 
   /* make decisions based on job/update assertions */
   //makeruledecisions(solv);
+
         $installRecommended = 0;
         $this->runSat($installRecommended);
 
@@ -542,27 +541,27 @@ class Solver
     {
         return (isset($this->decisionMap[$l->getPackageId()]) && (
             $this->decisionMap[$l->getPackageId()] > 0 && $l->isWanted() ||
-            $this->decisionMap[$l->getPackageId()] < 0 && ! $l->isWanted()
+            $this->decisionMap[$l->getPackageId()] < 0 && !$l->isWanted()
         ));
     }
 
     protected function decisionsSatisfy(Literal $l)
     {
         return ($l->isWanted() && isset($this->decisionMap[$l->getPackageId()]) && $this->decisionMap[$l->getPackageId()] > 0) ||
-            (! $l->isWanted() && (!isset($this->decisionMap[$l->getPackageId()]) || $this->decisionMap[$l->getPackageId()] < 0));
+            (!$l->isWanted() && (!isset($this->decisionMap[$l->getPackageId()]) || $this->decisionMap[$l->getPackageId()] < 0));
     }
 
     protected function decisionsConflict(Literal $l)
     {
         return (isset($this->decisionMap[$l->getPackageId()]) && (
-            $this->decisionMap[$l->getPackageId()] > 0 && ! $l->isWanted() ||
+            $this->decisionMap[$l->getPackageId()] > 0 && !$l->isWanted() ||
             $this->decisionMap[$l->getPackageId()] < 0 && $l->isWanted()
         ));
     }
 
     protected function undecided(Package $p)
     {
-        return ! isset($this->decisionMap[$p->getId()]);
+        return !isset($this->decisionMap[$p->getId()]);
     }
 
     protected function decidedInstall(Package $p) {
@@ -611,8 +610,8 @@ class Solver
 
                 if (sizeof($ruleLiterals) > 2) {
                     foreach ($ruleLiterals as $ruleLiteral) {
-                        if (! $otherWatch->equals($ruleLiteral) &&
-                            ! $this->decisionsConflict($ruleLiteral)) {
+                        if (!$otherWatch->equals($ruleLiteral) &&
+                            !$this->decisionsConflict($ruleLiteral)) {
 
 
                             if ($literal->equals($rule->getWatch1())) {
@@ -794,15 +793,15 @@ class Solver
                             $rule = $this->rules[Solver::TYPE_FEATURE][$literal->getPackageId()];
                         }
 
-                        if (! $rule || $rule->isDisabled()) {
+                        if (!$rule || $rule->isDisabled()) {
                             continue;
                         }
 
                         $decisionQueue = array();
-                        if (! isset($this->noUpdate[$literal->getPackageId()]) && (
+                        if (!isset($this->noUpdate[$literal->getPackageId()]) && (
                             $this->decidedRemove($literal->getPackage()) ||
                             isset($this->updateMap[$literal->getPackageId()]) ||
-                            ! $literal->equals($rule->getFirstLiteral())
+                            !$literal->equals($rule->getFirstLiteral())
                         )) {
                             foreach ($rule->getLiterals() as $ruleLiteral) {
                                 if ($this->decidedInstall($ruleLiteral->getPackage())) {
@@ -829,7 +828,7 @@ class Solver
                         }
 
                         // still undecided? keep package.
-                        if (! $repeat && $this->undecided($literal->getPackage())) {
+                        if (!$repeat && $this->undecided($literal->getPackage())) {
                             $oLevel = $level;
                             if (isset($this->cleanDepsMap[$literal->getPackageId()])) {
                                 // clean deps removes package
