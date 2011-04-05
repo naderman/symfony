@@ -41,6 +41,8 @@ class Solver
     protected $addedMap = array();
     protected $fixMap = array();
     protected $updateMap = array();
+    protected $watches = array();
+    protected $removeWatches = array();
 
     public function __construct(PolicyInterface $policy, Pool $pool, RepositoryInterface $installed)
     {
@@ -48,11 +50,12 @@ class Solver
         $this->pool = $pool;
         $this->installed = $installed;
         $this->rules = array(
-            self::TYPE_PACKAGE => array(),
+            // order matters here! further down => higher priority
+            self::TYPE_WEAK => array(),
             self::TYPE_FEATURE => array(),
             self::TYPE_UPDATE => array(),
             self::TYPE_JOB => array(),
-            self::TYPE_WEAK => array(),
+            self::TYPE_PACKAGE => array(),
         );
     }
 
@@ -141,7 +144,7 @@ class Solver
      */
     public function createInstallOneOfRule(array $packages, $reason, $reasonData = null)
     {
-        if (!count($packages)) {
+        if (! count($packages)) {
             return $this->createImpossibleRule($reason, $reasonData);
         }
 
@@ -252,7 +255,7 @@ class Solver
                 $dontFix = 1;
             }
 
-            if (!$dontFix && !$this->policy->installable($this, $this->pool, $this->installed, $package)) {
+            if (! $dontFix && !$this->policy->installable($this, $this->pool, $this->installed, $package)) {
                 $this->addRule(self::TYPE_PACKAGE, $this->createRemoveRule($package, self::RULE_NOT_INSTALLABLE, (string) $package));
                 continue;
             }
@@ -274,7 +277,7 @@ class Solver
                     }
 
                     // no installed provider found: previously broken dependency => don't add rule
-                    if (!$foundInstalled) {
+                    if (! $foundInstalled) {
                         continue;
                     }
                 }
@@ -318,7 +321,7 @@ class Solver
      * @param Package $package  Rules for this package's updates are to be added
      * @param bool    $allowAll Whether downgrades are allowed
      */
-    public function addRulesForUpdatePackages(Package $package, $allowAll)
+    private function addRulesForUpdatePackages(Package $package, $allowAll)
     {
         $updates = $this->policy->findUpdatePackages($this, $this->pool, $this->installed, $package, $allowAll);
 
@@ -326,6 +329,41 @@ class Solver
 
         foreach ($updates as $update) {
             $this->addRulesForPackage($update);
+        }
+    }
+
+    /**
+     * Sets up watch chains for all rules.
+     *
+     * Next1/2 always points to the next rule that is watching the same package.
+     * The watches array contains rules to start from for each package
+     *
+     */
+    private function makeWatches()
+    {
+        foreach ($this->rules as $type => $rules) {
+            foreach ($rules as $i => $rule) {
+
+                // skip simple assertions of the form (A) or (-A)
+                if (! $rule->watch2) {
+                    continue;
+                }
+
+                if (! isset($this->watches[$rule->watch1])) {
+                    $this->watches[$rule->watch1] = 0;
+                }
+
+                $rule->next1 = $this->watches[$rule->watch1];
+                $this->watches[$rule->watch1] = $rule;
+
+                if (! isset($this->watches[$rule->watch2])) {
+                    $this->watches[$rule->watch2] = 0;
+                }
+
+                $rule->next2 = $this->watches[$rule->watch2];
+                $this->watches[$rule->watch2] = $rule;
+
+            }
         }
     }
 
@@ -458,8 +496,8 @@ class Solver
         //die();
         // solver_addchoicerules(solv);
 
-  /* create watches chains */
-  //makewatches(solv);
+        $this->makeWatches();
+
   /* disable update rules that conflict with our job */
   //solver_disablepolicyrules(solv);
 
@@ -756,7 +794,7 @@ class Solver
                             $rule = $this->rules[Solver::TYPE_FEATURE][$literal->getPackageId()];
                         }
 
-                        if (!$rule || $rule->isDisabled()) {
+                        if (! $rule || $rule->isDisabled()) {
                             continue;
                         }
 
@@ -791,7 +829,7 @@ class Solver
                         }
 
                         // still undecided? keep package.
-                        if (!$repeat && $this->undecided($literal->getPackage())) {
+                        if (! $repeat && $this->undecided($literal->getPackage())) {
                             $oLevel = $level;
                             if (isset($this->cleanDepsMap[$literal->getPackageId()])) {
                                 // clean deps removes package

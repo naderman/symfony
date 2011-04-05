@@ -19,8 +19,11 @@ class Rule
     protected $disabled;
     protected $literals;
 
-    protected $next1;
-    protected $next2;
+    public $watch1;
+    public $watch2;
+
+    public $next1;
+    public $next2;
 
     public function __construct(array $literals, $reason, $reasonData)
     {
@@ -33,8 +36,8 @@ class Rule
 
         $this->disabled = false;
 
-        $this->watch1 = (count($this->literals) > 0) ? $literals[0] : null;
-        $this->watch2 = (count($this->literals) > 1) ? $literals[1] : null;
+        $this->watch1 = (count($this->literals) > 0) ? $literals[0]->getId() : 0;
+        $this->watch2 = (count($this->literals) > 1) ? $literals[1]->getId() : 0;
     }
 
     /**
@@ -85,23 +88,18 @@ class Rule
         return $this->literals;
     }
 
-    public function getFirstWatchedSolvable()
+    public function getNext(Literal $literal)
     {
-        return $this->watch1;
-    }
-
-    public function getNext(Solvable $solvable)
-    {
-        if ($this->getFirstWatchedSolvable()->equals($solvable)) {
+        if ($this->watch1->equals($literal)) {
             return $this->next1;
         } else {
             return $this->next2;
         }
     }
 
-    public function getOtherWatch(Solvable $solvable)
+    public function getOtherWatch(Literal $literal)
     {
-        if ($this->watch1->equals($solvable)) {
+        if ($this->watch1->equals($literal)) {
             return $this->watch2;
         } else {
             return $this->watch1;
